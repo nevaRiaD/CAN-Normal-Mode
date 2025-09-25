@@ -1,0 +1,30 @@
+# STM32CubeIDE / Eclipse specific
+.settings/
+.project
+.cproject
+.mxproject
+*.launch
+
+# Build directories
+Debug/
+Release/
+build/
+
+# Object files and binaries
+*.o
+*.d
+*.elf
+*.bin
+*.hex
+*.map
+*.list
+
+# Backup / temp files
+*.swp
+*.swo
+*.bak
+*.tmp
+
+# OS generated files
+.DS_Store
+Thumbs.db
