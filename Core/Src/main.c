@@ -243,7 +243,7 @@ static void MX_CAN1_Init(void)
   sFilterConfig.FilterMode = CAN_FILTERMODE_IDMASK;		/* Using ID Mask Mode */
   sFilterConfig.FilterScale = CAN_FILTERSCALE_32BIT;	/* 32bit scale */
   sFilterConfig.FilterIdHigh = 0x0000;
-  sFilterConfig.FilterIdLow = 0x0000;					/* Filter set for standard mode only */
+  sFilterConfig.FilterIdLow = 0x0004;					/* Filter set for extended mode only */
   sFilterConfig.FilterMaskIdHigh = 0x0000;				/* Accepts all ids except Extended frames */
   sFilterConfig.FilterMaskIdLow = 0x0004;				/* Filter set to check only on the ID format */
   sFilterConfig.FilterFIFOAssignment = CAN_RX_FIFO1;	/* All messages will be accepted on FIFO1 */
@@ -365,23 +365,23 @@ void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *CanHandle)
 		HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
 	}
 
-	if ((RxHeaderFIFO0.StdId & 0xFF) == 0xF0)
+	if ((RxHeaderFIFO1.ExtId & 0xFF) == 0xF0)
 	{
 		rx_f0_std++; /* Increment this if a standard CAN frame is received from the NUCLEO-F042 board */
 	}
-	else if ((RxHeaderFIFO0.StdId & 0xFF) == 0xF1)
+	else if ((RxHeaderFIFO1.ExtId & 0xFF) == 0xF1)
 	{
 		rx_f1_std++; /* Increment this if a standard CAN frame is received from the NUCLEO-F103 board */
 	}
-	else if ((RxHeaderFIFO0.StdId & 0xFF) == 0xF2)
+	else if ((RxHeaderFIFO1.ExtId & 0xFF) == 0xF2)
 	{
 		rx_f2_std++; /* Increment this if a standard CAN frame is received from the NUCLEO-F207 board */
 	}
-	else if ((RxHeaderFIFO0.StdId & 0xFF) == 0xF3)
+	else if ((RxHeaderFIFO1.ExtId & 0xFF) == 0xF3)
 	{
 		rx_f3_std++; /* Increment this if a standard CAN frame is received from the NUCLEO-F302 board */
 	}
-	else if ((RxHeaderFIFO0.StdId & 0xFF) == 0xF7)
+	else if ((RxHeaderFIFO1.ExtId & 0xFF) == 0xF7)
 	{
 		rx_f7_std++; /* Increment this if a standard CAN frame is received from the NUCLEO-F767 board */
 	}
