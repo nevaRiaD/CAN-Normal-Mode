@@ -367,23 +367,23 @@ void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *CanHandle)
 
 	if ((RxHeaderFIFO1.ExtId & 0xFF) == 0xF0)
 	{
-		rx_f0_std++; /* Increment this if a standard CAN frame is received from the NUCLEO-F042 board */
+		rx_f0_ext++; /* Increment this if a standard CAN frame is received from the NUCLEO-F042 board */
 	}
 	else if ((RxHeaderFIFO1.ExtId & 0xFF) == 0xF1)
 	{
-		rx_f1_std++; /* Increment this if a standard CAN frame is received from the NUCLEO-F103 board */
+		rx_f1_ext++; /* Increment this if a standard CAN frame is received from the NUCLEO-F103 board */
 	}
 	else if ((RxHeaderFIFO1.ExtId & 0xFF) == 0xF2)
 	{
-		rx_f2_std++; /* Increment this if a standard CAN frame is received from the NUCLEO-F207 board */
+		rx_f2_ext++; /* Increment this if a standard CAN frame is received from the NUCLEO-F207 board */
 	}
 	else if ((RxHeaderFIFO1.ExtId & 0xFF) == 0xF3)
 	{
-		rx_f3_std++; /* Increment this if a standard CAN frame is received from the NUCLEO-F302 board */
+		rx_f3_ext++; /* Increment this if a standard CAN frame is received from the NUCLEO-F302 board */
 	}
 	else if ((RxHeaderFIFO1.ExtId & 0xFF) == 0xF7)
 	{
-		rx_f7_std++; /* Increment this if a standard CAN frame is received from the NUCLEO-F767 board */
+		rx_f7_ext++; /* Increment this if a standard CAN frame is received from the NUCLEO-F767 board */
 	}
 }
 /* USER CODE END 4 */
