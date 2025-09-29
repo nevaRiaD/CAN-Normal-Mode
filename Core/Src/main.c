@@ -49,6 +49,20 @@ CAN_HandleTypeDef hcan1;
 uint32_t			TxMailbox;			/* The number of the mail box that trasmitted the Tx message */
 CAN_TxHeaderTypeDef	TxHeader;
 uint8_t				TxData[8] = {0};
+CAN_RxHeaderTypeDef	RxHeaderFIFO0;		/* Header containing information of the received frame */
+CAN_RxHeaderTypeDef RxHeaderFIFO1;
+uint8_t				RxDataFIFO0[8];		/* Buffer of the received data */
+uint8_t				RxDataFIFO1[8];
+__IO uint32_t         rx_f0_std = 0;   /* Contains the number of standard frames received from a STM32F0 MCU */
+__IO uint32_t         rx_f0_ext = 0;   /* Contains the number of extended frames received from a STM32F0 MCU */
+__IO uint32_t         rx_f1_std = 0;   /* Contains the number of standard frames received from a STM32F1 MCU */
+__IO uint32_t         rx_f1_ext = 0;   /* Contains the number of extended frames received from a STM32F1 MCU */
+__IO uint32_t         rx_f2_std = 0;   /* Contains the number of standard frames received from a STM32F2 MCU */
+__IO uint32_t         rx_f2_ext = 0;   /* Contains the number of extended frames received from a STM32F2 MCU */
+__IO uint32_t         rx_f3_std = 0;   /* Contains the number of standard frames received from a STM32F3 MCU */
+__IO uint32_t         rx_f3_ext = 0;   /* Contains the number of extended frames received from a STM32F3 MCU */
+__IO uint32_t         rx_f7_std = 0;   /* Contains the number of standard frames received from a STM32F7 MCU */
+__IO uint32_t         rx_f7_ext = 0;   /* Contains the number of extended frames received from a STM32F7 MCU */
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -184,7 +198,7 @@ static void MX_CAN1_Init(void)
 {
 
   /* USER CODE BEGIN CAN1_Init 0 */
-
+  CAN_FilterTypeDef	sFilterConfig;
   /* USER CODE END CAN1_Init 0 */
 
   /* USER CODE BEGIN CAN1_Init 1 */
@@ -207,9 +221,48 @@ static void MX_CAN1_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN CAN1_Init 2 */
+  /* Filter Configuration */
+  sFilterConfig.SlaveStartFilterBank = 14;			/* Start slave bank. Set only once */
+  /* CAN Filter Configuration */
+  sFilterConfig.FilterBank = 0;							/* Filter Number 0 */
+  sFilterConfig.FilterMode = CAN_FILTERMODE_IDMASK;		/* Using ID Mask Mode */
+  sFilterConfig.FilterScale = CAN_FILTERSCALE_32BIT;	/* 32bit scale */
+  sFilterConfig.FilterIdHigh = 0x0000;
+  sFilterConfig.FilterIdLow = 0x0000;					/* Filter set for standard mode only */
+  sFilterConfig.FilterMaskIdHigh = 0x0000;				/* Accepts all ids except Extended frames */
+  sFilterConfig.FilterMaskIdLow = 0x0004;				/* Filter set to check only on the ID format */
+  sFilterConfig.FilterFIFOAssignment = CAN_RX_FIFO0;	/* All messages will be accepted on FIFO0 */
+  sFilterConfig.FilterActivation = ENABLE;
+  if (HAL_CAN_ConfigFilter(&hcan1, &sFilterConfig) != HAL_OK)
+  {
+      /* Filter configuration Error */
+      Error_Handler();
+  }
+
+  sFilterConfig.FilterBank = 1;							/* Filter Number 1 */
+  sFilterConfig.FilterMode = CAN_FILTERMODE_IDMASK;		/* Using ID Mask Mode */
+  sFilterConfig.FilterScale = CAN_FILTERSCALE_32BIT;	/* 32bit scale */
+  sFilterConfig.FilterIdHigh = 0x0000;
+  sFilterConfig.FilterIdLow = 0x0000;					/* Filter set for standard mode only */
+  sFilterConfig.FilterMaskIdHigh = 0x0000;				/* Accepts all ids except Extended frames */
+  sFilterConfig.FilterMaskIdLow = 0x0004;				/* Filter set to check only on the ID format */
+  sFilterConfig.FilterFIFOAssignment = CAN_RX_FIFO1;	/* All messages will be accepted on FIFO1 */
+  sFilterConfig.FilterActivation = ENABLE;
+  if (HAL_CAN_ConfigFilter(&hcan1, &sFilterConfig) != HAL_OK)
+  {
+      /* Filter configuration Error */
+      Error_Handler();
+  }
   /* Start CAN peripheral */
   if (HAL_CAN_Start(&hcan1) != HAL_OK)
   {
+    Error_Handler();
+  }
+
+  /* Activate CAN TX notifcations on FIFO0 and FIFO1 */
+  if (HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING | CAN_IT_RX_FIFO1_MSG_PENDING) != HAL_OK)
+  {
+	  /* Notification Error */
 	  Error_Handler();
   }
   /* USER CODE END CAN1_Init 2 */
@@ -264,7 +317,75 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *CanHandle)
+{
+	if (HAL_CAN_GetRxMessage(CanHandle, CAN_RX_FIFO0, &RxHeaderFIFO0, RxDataFIFO0) != HAL_OK)
+	{
+		/* Reception Error */
+		Error_Handler();
+	}
+	else
+	{
+		/* Toggle LED when message is received */
+		HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+	}
 
+	if ((RxHeaderFIFO0.StdId & 0xFF) == 0xF0)
+	{
+		rx_f0_std++; /* Increment this if a standard CAN frame is received from the NUCLEO-F042 board */
+	}
+	else if ((RxHeaderFIFO0.StdId & 0xFF) == 0xF1)
+	{
+		rx_f1_std++; /* Increment this if a standard CAN frame is received from the NUCLEO-F103 board */
+	}
+	else if ((RxHeaderFIFO0.StdId & 0xFF) == 0xF2)
+	{
+		rx_f2_std++; /* Increment this if a standard CAN frame is received from the NUCLEO-F207 board */
+	}
+	else if ((RxHeaderFIFO0.StdId & 0xFF) == 0xF3)
+	{
+		rx_f3_std++; /* Increment this if a standard CAN frame is received from the NUCLEO-F302 board */
+	}
+	else if ((RxHeaderFIFO0.StdId & 0xFF) == 0xF7)
+	{
+		rx_f7_std++; /* Increment this if a standard CAN frame is received from the NUCLEO-F767 board */
+	}
+}
+
+void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *CanHandle)
+{
+	if (HAL_CAN_GetRxMessage(CanHandle, CAN_RX_FIFO1, &RxHeaderFIFO1, RxDataFIFO1) != HAL_OK)
+	{
+		/* Reception Error */
+		Error_Handler();
+	}
+	else
+	{
+		/* Toggle LED when message is received */
+		HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+	}
+
+	if ((RxHeaderFIFO0.StdId & 0xFF) == 0xF0)
+	{
+		rx_f0_std++; /* Increment this if a standard CAN frame is received from the NUCLEO-F042 board */
+	}
+	else if ((RxHeaderFIFO0.StdId & 0xFF) == 0xF1)
+	{
+		rx_f1_std++; /* Increment this if a standard CAN frame is received from the NUCLEO-F103 board */
+	}
+	else if ((RxHeaderFIFO0.StdId & 0xFF) == 0xF2)
+	{
+		rx_f2_std++; /* Increment this if a standard CAN frame is received from the NUCLEO-F207 board */
+	}
+	else if ((RxHeaderFIFO0.StdId & 0xFF) == 0xF3)
+	{
+		rx_f3_std++; /* Increment this if a standard CAN frame is received from the NUCLEO-F302 board */
+	}
+	else if ((RxHeaderFIFO0.StdId & 0xFF) == 0xF7)
+	{
+		rx_f7_std++; /* Increment this if a standard CAN frame is received from the NUCLEO-F767 board */
+	}
+}
 /* USER CODE END 4 */
 
 /**
